@@ -10,6 +10,7 @@ module Elementary.Logger
 
     , toText
     , hoistLogger
+    , runCustomLoggerT
     , runHandleLoggerT
     , runStdoutLoggerT
     , runStderrLoggerT
@@ -40,12 +41,16 @@ import Elementary.Logger.Internal
 hoistLogger :: (forall x. m x -> n x) -> LoggerT m a -> LoggerT n a
 hoistLogger f (LoggerT m) = coerce $ \e -> f $ runReaderT m e
 
+runCustomLoggerT :: (MonadIO m, MonadMask m) => (TL.LazyText -> IO ()) -> LogLevel -> LoggerT m a -> m a
+runCustomLoggerT logFn lower (LoggerT m) = do
+    chan <- liftIO newLogChanIO'
+    bracket (liftIO $ forkIO $ loggerThread lower chan logFn) (liftIO . killThread) $ \_ ->
+        runReaderT m chan
+
 runHandleLoggerT :: (MonadIO m, MonadMask m) => Handle -> LogLevel -> LoggerT m a -> m a
-runHandleLoggerT hdl lower (LoggerT m) =
-    bracket (liftIO $ hGetBuffering hdl) (liftIO . hSetBuffering hdl) $ \_ -> do
-        chan <- liftIO newLogChanIO'
-        bracket (liftIO $ forkIO $ loggerThread lower chan logFn) (liftIO . killThread) $ \_ ->
-            runReaderT m chan
+runHandleLoggerT hdl lower logger =
+    bracket (liftIO $ hGetBuffering hdl) (liftIO . hSetBuffering hdl) $ \_ ->
+        runCustomLoggerT logFn lower logger
   where
     logFn = TL.hPutStrLn hdl
 
