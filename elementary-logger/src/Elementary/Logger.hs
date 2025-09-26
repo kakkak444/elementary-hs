@@ -70,12 +70,12 @@ writeLogChan' event = do
 
 logWithLevel :: (MonadLogger m, MonadIO m) => LogLevel -> TL.LazyText -> m ()
 logWithLevel level content = do
-    currTime <- liftIO $ getCurrentTime
+    currTime <- liftIO getCurrentTime
     writeLogChan' $ LogEvent level currTime content
 
 logWithLevelS :: (MonadLogger m, MonadIO m, Show a) => LogLevel -> a -> m ()
 logWithLevelS level content = do
-    currTime <- liftIO $ getCurrentTime
+    currTime <- liftIO getCurrentTime
     writeLogChan' $ LogEvent level currTime $ TL.show content
 
 -- | log with name
