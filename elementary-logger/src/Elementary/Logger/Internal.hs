@@ -11,6 +11,7 @@ module Elementary.Logger.Internal
 
     , MonadLogger(..)
 
+    , runLoggerT
     , writeLogChan
     , readLogChan
     , defaultLogChanCapacity
@@ -59,6 +60,10 @@ newtype LoggerT m a = LoggerT { unLoggerT :: ReaderT LogChan m a }
                      , MonadReader LogChan
                      , MonadUnliftIO
                      )
+
+runLoggerT :: LoggerT m a -> LogChan -> m a
+{-# INLINE runLoggerT #-}
+runLoggerT = coerce
 
 class (Monad m) => MonadLogger m where
     askLogChan :: m LogChan
