@@ -26,6 +26,7 @@ import Control.Concurrent.STM
 import Control.Concurrent.STM.TBChan
 import Control.Exception.Safe
 import Control.Monad (forever, when)
+import Control.Monad.IO.Unlift (MonadUnliftIO)
 import Control.Monad.Reader
 import Data.Coerce
 import Data.Ix (Ix)
@@ -56,6 +57,7 @@ newtype LoggerT m a = LoggerT { unLoggerT :: ReaderT LogChan m a }
                      , MonadIO
                      , MonadFail
                      , MonadReader LogChan
+                     , MonadUnliftIO
                      )
 
 class (Monad m) => MonadLogger m where
