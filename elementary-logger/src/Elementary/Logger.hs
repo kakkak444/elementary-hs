@@ -49,7 +49,8 @@ runCustomLoggerT logFn lower (LoggerT m) = do
 
 runHandleLoggerT :: (MonadIO m, MonadMask m) => Handle -> LogLevel -> LoggerT m a -> m a
 runHandleLoggerT hdl lower logger =
-    bracket (liftIO $ hGetBuffering hdl) (liftIO . hSetBuffering hdl) $ \_ ->
+    bracket (liftIO $ hGetBuffering hdl) (liftIO . hSetBuffering hdl) $ \_ -> do
+        liftIO $ hSetBuffering hdl LineBuffering
         runCustomLoggerT logFn lower logger
   where
     logFn = TL.hPutStrLn hdl
